@@ -6,6 +6,7 @@
  *
  * @package RaveRestAPI
  * @author epierce
+ * @version 1.1
  *
  */
 class RaveRestAPI
@@ -375,12 +376,8 @@ class RaveRestAPI
 
 		$POST_Payload = $raveUser->asXML();
 
-	//	print_r($this->curl->options);
-
 		$response = $this->curl->post($request_URL, $POST_Payload);
 		
-	//	print_r($response);
-
 		if($this->debug) $this->printResponseDebug('registerUser',$request_URL,$POST_Payload,$response);
 
 		//Valid Return Codes for REST API are 200 or 202
@@ -714,6 +711,158 @@ class RaveRestAPI
 		}
 
 		return 1;
+	}
+	
+	/**
+	 * List Administration
+	 */
+	
+	/**
+	 * Creates a new RAVE list
+	 *
+	 * @param string $listName List's name
+	 * @param array $listMembers Array of members for this list
+	 * @return array Array of members that were rejected by RAVE (i.e. email address do not exist)
+	 */
+	public function createUserList($listName, $listMembers)
+	{
+
+		$request_URL = $this->REST_URL."siteadmin/userlists";
+		
+		$this->setCommonCurlOptions();
+
+		$raveList = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8" ?><userList/>');
+		$raveList->addChild('name', $listName);
+		$raveListMembers = $raveList->addChild('memberList');
+		foreach($listMembers as $member){
+			$raveListMembers->addChild('listMember', $member);
+		}
+		
+		$POST_Payload = $raveList->asXML();
+
+		$response = $this->curl->post($request_URL, $POST_Payload);
+		
+		if($this->debug) $this->printResponseDebug('createUserList',$request_URL,$POST_Payload,$response);
+
+		//Valid Return Codes for REST API are 200 or 202
+		if (($response->headers['Status-Code'] != 200) && ($response->headers['Status-Code'] != 202)) {
+			$this->errorHandler($response);
+			return 0;
+		}
+		
+		$xml = simplexml_load_string($response);
+
+		$rejectedMembers = array();
+		foreach ($xml->xpath('//listMember') as $rejectedMember) {
+			$rejectedMembers[] = (string) $rejectedMember;
+		}
+		
+		return $rejectedMembers;
+	}
+
+	
+	/**
+	 * Remove RAVE list
+	 *
+	 * @param int $listID
+	 * @return boolean
+	 */
+	public function deleteUserList($listID)
+	{
+
+		$request_URL = $this->REST_URL."siteadmin/userlists/".$listID;
+
+		$this->setCommonCurlOptions();
+
+		$response = $this->curl->delete($request_URL);
+
+		if($this->debug) $this->printResponseDebug('deleteUserList',$request_URL,'',$response);
+
+		//Valid Return Codes for REST API are 200 or 202
+		if (($response->headers['Status-Code'] != 200) && ($response->headers['Status-Code'] != 202)) {
+			$this->errorHandler($response);
+			return 0;
+		}
+
+		return 1;
+	}
+	
+	/**
+	 * Get all RAVE lists
+	 *
+	 * returns assoc.array with elements:
+	 *
+	 * $raveList[0]['listID'] : RAVE ListId number
+	 * $raveList[0]['listURL'] : Web Service URL to get all subscribed memebers
+	 * $raveList[0]['name'] : List name
+	 *
+	 * Returns 0 on failure
+	 *
+	 * @return number|array
+	 */
+	public function getUserLists()
+	{
+
+		$request_URL = $this->REST_URL."siteadmin/userlists";
+
+		$this->setCommonCurlOptions();
+
+		$response = $this->curl->get($request_URL);
+
+		if($this->debug) $this->printResponseDebug('getUserLists',$request_URL,'',$response);
+
+		//Valid Return Codes for REST API are 200 or 202
+		if (($response->headers['Status-Code'] != 200) && ($response->headers['Status-Code'] != 202)) {
+			$this->errorHandler($response);
+			return 0;
+		}
+
+		$xml = simplexml_load_string($response);
+
+		foreach ($xml->userList as $userList) {
+
+			$listID = $userList->attributes()->id;
+			$listURL = $userList->attributes()->userListDetailsURL;
+			$name = $userList->name;
+
+			$raveList[] = array('listID' => (int) $listID,'listURL' => (string) $listURL,'name' => (string) $name);
+
+		}
+
+		return $raveList;
+	}
+	
+	/**
+	 * Get members of a RAVE list
+	 *
+	 * Returns 0 on failure
+	 * 
+	 * @param int $listID Rave ListID number
+	 * @return number|array Member list
+	 */
+	public function getUserListDetails($listID)
+	{
+
+		$request_URL = $this->REST_URL."siteadmin/userlists/".$listID;
+
+		$this->setCommonCurlOptions();
+
+		$response = $this->curl->get($request_URL);
+
+		if($this->debug) $this->printResponseDebug('getUserListDetails',$request_URL,'',$response);
+
+		//Valid Return Codes for REST API are 200 or 202
+		if (($response->headers['Status-Code'] != 200) && ($response->headers['Status-Code'] != 202)) {
+			$this->errorHandler($response);
+			return 0;
+		}
+
+		$xml = simplexml_load_string($response);		
+		foreach ($xml->memberList->listMember as $listMember) {
+			$memberList[] = (string) $listMember;			
+		}
+
+		return $memberList;
 	}
 }
 

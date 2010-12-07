@@ -15,13 +15,36 @@
 	$Email = 'epierce@mail.usf.edu';
 	$Unum = 'U22944104';
 	$GroupID = '7193';
+	$ListID = '6066';
 	$ConfCode = '8503';
+	$ListMembers = array('epierce@usf.edu','chance@usf.edu','fdhsfjkdsfhjk@hjk.edu');
+	$ListName = 'CIMS_TEST';
 	
 	$USFrave->setDebug();
 	
 	$ravetest = $argv[1];
 	
 	switch($ravetest) {
+		case 'createUserList' :
+			echo 'Create new List:'."\n";	
+			$response =  $USFrave->createUserList($ListName,$ListMembers);
+			print_r($response);
+		break;		
+		case 'deleteUserList' :
+			echo 'Delete List:'."\n";	
+			$response =  $USFrave->deleteUserList($ListID);
+			print_r($response);
+		break;		
+		case 'getUserLists' :
+			echo 'Get all Lists:'."\n";	
+			$response =  $USFrave->getUserLists();
+			print_r($response);
+		break;
+		case 'getUserListDetails' :
+			echo 'Get Members of list '."$ListID \n";	
+			$response =  $USFrave->getUserListDetails($ListID);
+			print_r($response);
+		break;
 		case 'finduserbysisid' :
 			echo 'Find User by sisID:'."\n";	
 			$response =  $USFrave->findUserBySisId($Unum);
@@ -111,6 +134,11 @@
 		function usage() {
 			echo "USAGE: ravetest.php FUNCTION\n";
 			echo 'Valid Functions:
+			
+			createUserList
+			deleteUserList
+			getUserLists
+			getUserListDetails
 				
 			finduserbyemail
 			finduserbysisid
