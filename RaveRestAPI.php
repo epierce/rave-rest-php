@@ -656,7 +656,44 @@ class RaveRestAPI
 
 		return 1;
 	}
+	
+/**
+	 * Get all subscribed lists for a single RAVE user
+	 *
+	 * returns array of the ListIDs this user is subscribed to
+	 *
+	 * Returns 0 on failure
+	 *
+	 * @param string $Email
+	 * @return number|array
+	 */
+	public function getSubscribedListsForUser($Email)
+	{
 
+		$request_URL = $this->REST_URL."user/".$Email."/userlists";
+
+		$this->setCommonCurlOptions();
+
+		$response = $this->curl->get($request_URL);
+
+		if($this->debug) $this->printResponseDebug('getSubscribedListsForUser',$request_URL,'',$response);
+
+		//Valid Return Codes for REST API are 200 or 202
+		if (($response->headers['Status-Code'] != 200) && ($response->headers['Status-Code'] != 202)) {
+			$this->errorHandler($response);
+			return 0;
+		}
+
+		$xml = simplexml_load_string($response);
+
+		$raveListMemberships = array();
+		foreach ($xml->xpath('//userList') as $Membership) {
+			$raveListMemberships[] = (int) $Membership->attributes()->id;
+		}
+
+		return $raveListMemberships;
+	}
+	
 	/**
 	 * Subscribe user to a RAVE List
 	 * TODO: find out the difference between 'group' & 'list' in RAVE

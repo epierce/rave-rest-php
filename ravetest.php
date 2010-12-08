@@ -12,35 +12,35 @@
 	$mobile1Confirmed='false';
 	$useMobile1ForVoice='true';
 	$NetID='epierce';
-	$Email = 'epierce@mail.usf.edu';
+	$Email = 'epierce@usf.edu';
 	$Unum = 'U22944104';
 	$GroupID = '7193';
-	$ListID = '6066';
+	$ListID = '6067';
 	$ConfCode = '8503';
 	$ListMembers = array('epierce@usf.edu','chance@usf.edu','fdhsfjkdsfhjk@hjk.edu');
 	$ListName = 'CIMS_TEST';
 	
 	$USFrave->setDebug();
 	
-	$ravetest = $argv[1];
+	$ravetest = strtolower($argv[1]);
 	
 	switch($ravetest) {
-		case 'createUserList' :
+		case 'createuserlist' :
 			echo 'Create new List:'."\n";	
 			$response =  $USFrave->createUserList($ListName,$ListMembers);
 			print_r($response);
 		break;		
-		case 'deleteUserList' :
+		case 'deleteuserlist' :
 			echo 'Delete List:'."\n";	
 			$response =  $USFrave->deleteUserList($ListID);
 			print_r($response);
 		break;		
-		case 'getUserLists' :
+		case 'getuserlists' :
 			echo 'Get all Lists:'."\n";	
 			$response =  $USFrave->getUserLists();
 			print_r($response);
 		break;
-		case 'getUserListDetails' :
+		case 'getuserlistdetails' :
 			echo 'Get Members of list '."$ListID \n";	
 			$response =  $USFrave->getUserListDetails($ListID);
 			print_r($response);
@@ -80,6 +80,11 @@
 			$response = $USFrave->updatePrimaryEmail($Unum,$Email);
 			print_r($response);
 		break;
+		case 'getsubscribedlistsforuser' :
+			echo 'Get Subscribed Lists:'."\n";
+			$response =  $USFrave->getSubscribedListsForUser($Email);
+			print_r($response);
+		break;		
 		case 'getsubscribedgroupsforuser' :
 			echo 'Get Subscribed Groups:'."\n";
 			$response =  $USFrave->getSubscribedGroupsForUser($Email);
@@ -139,6 +144,7 @@
 			deleteUserList
 			getUserLists
 			getUserListDetails
+			getSubscribedListsforUser
 				
 			finduserbyemail
 			finduserbysisid
